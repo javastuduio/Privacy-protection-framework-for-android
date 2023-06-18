@@ -1,0 +1,19 @@
+ubprocess.call(['apktool','d',apkname,'-f'], subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
+    mytree  = ET.parse(apkpath+'/AndroidManifest.xml')
+
+    # parsing using the string.
+    # stringroot = ET.fromstring(XMLexample_stored_in_a_string)
+    # printing the root.
+    myroot = mytree.getroot()
+
+    permissions = myroot.findall("uses-permission")
+
+    for perm in permissions:
+        for att in perm.attrib:
+            if(perm.attrib[att] in unwanted):
+                myroot.remove(perm)
+                print("removed")
+            
+    mytree.write(apkpath+"/AndroidManifest.xml")
+
+    subprocess.call(['apktool','b',apkpath], subprocess.DEVNULL, stderr=subprocess.STDOUT, shell=True)
