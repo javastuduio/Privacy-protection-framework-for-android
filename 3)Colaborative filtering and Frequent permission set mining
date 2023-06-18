@@ -1,0 +1,104 @@
+df1=pd.read_csv("output2.csv")
+    df1=df1[df1["Category"]==ctype]
+    print(df1)
+    perlist=pickle.load(open("perdata.pkl",'rb'))
+    dfcolumns=df1.columns.to_list()
+    dfcolumns=dfcolumns[2:]
+    print(dfcolumns)
+    print(perlist)
+    Alist=[]
+    for i in dfcolumns:
+        if(i in perlist):
+            Alist.append(1)
+        else:
+            Alist.append(0)
+
+    print(Alist)
+    colablist=[]
+    sval=0
+    dft=df1.drop(["App_name","Category"],axis=1)
+    for i in range(len(dft)):
+        app1=dft.values.tolist()[i]
+        print(len(app1))
+        print(len(Alist))
+        score=jaccard_score(app1, Alist)
+        if(score>sval):
+            colablist=app1
+            sval=score
+        print(score)
+        print("================")
+    print(sval)
+    print(colablist)
+    collist=df1.columns.tolist()
+    colabres=[]
+    for i in range(len(colablist)):
+        if(colablist[i]==1):
+            pv=collist[i]
+            if(pv not in colabres):
+                colabres.append(pv)
+    # print(dft.columns.tolist())
+    print(colabres)
+    pickle.dump(colabres,open("colabreslist.pkl","wb"))
+    # ================================================================================
+
+    df2=pd.read_excel("sample android.xlsx")
+    df2 = df2.loc[:, ~df2.columns.str.contains('^Unnamed')]
+    print(df2)
+    df2=df2.head(249)
+    df2=df2[df2["App category"]==ctype]
+    print("df2==>",df2)
+    allpermissions=[]
+    print(len(df2))
+    for i in range(len(df2)):
+        perlist1=[]
+        try:
+            pval=df2["App permissions"][i]
+               plist=pval.split(",")
+            for i in plist:
+                if("\n" in i):
+                    char = i.split("\n")
+                    for k in char:
+                        perlist1.append(k)
+                else:
+                    perlist1.append(i)
+                perlist1=list(filter(None, perlist1))
+                allpermissions.append(perlist1)
+        except:
+            pass
+        # print(allpermissions)
+
+    tr = TransactionEncoder()
+    tr_arr = tr.fit(allpermissions).transform(allpermissions)
+    df3 = pd.DataFrame(tr_arr, columns=tr.columns_)
+
+    frequent_itemsets = apriori(df3, min_support = 0.4, use_colnames = True)
+    res=frequent_itemsets["itemsets"]
+    reslist=[list(x) for x in res]
+    frequentlist=[]
+    for i in reslist:
+        for j in i:
+            if(j not in frequentlist):
+                frequentlist.append(j)
+        # print(i)
+    print(frequentlist)
+    pickle.dump(frequentlist,open("frequentlist.pkl","wb"))
+    # ==========================================================================
+    colablist=pickle.load(open("colabreslist.pkl","rb"))
+    frequentlist=pickle.load(open("frequentlist.pkl","rb"))
+    apppermission=pickle.load(open("perdata.pkl","rb"))
+    print(colablist)
+    print("================")
+    print(frequentlist)
+    print("================")
+    print(apppermission)
+    correctper=[]
+    unwanted=[]
+    for i in apppermission:
+        if((i  in colablist) or (i in frequentlist)):
+            correctper.append(i)
+        else:
+            unwanted.append(i)
+    print("acutal permissions==>")
+    print(correctper)
+    print("removable permissions==>")
+    print(unwanted)
