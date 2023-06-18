@@ -1,0 +1,10 @@
+apkpath=apkname.replace(".apk","")
+    print("apkname",apkname)
+    print("apkpath",apkpath)
+
+    a, d, dx = misc.AnalyzeAPK(apkname)
+    print(a.get_permissions())
+    print(" [*] Success")
+    perlist=a.get_permissions()
+    # perlist=pickle.load(open("perdata.pkl",'rb'))
+    pickle.dump(perlist,open("perdata.pkl","wb"))
